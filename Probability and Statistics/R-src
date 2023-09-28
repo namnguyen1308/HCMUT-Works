@@ -1,0 +1,145 @@
+> allgpus <- read.csv("C:/Users/NAM NGUYEN/Desktop/archive/All_GPUs.csv")
+newdf <- allgpus[,c("Boost_Clock", "Core_Speed", "Memory", "Memory_Bandwidth", "Memory_Bus", "Memory_Speed", "Release_Price", "Texture_Rate")]
+#remove string 
+newdf<-allgpus[,c("Boost_Clock","Core_Speed","Memory","Memory_Bandwidth","Memory_Bus","Memory_Speed","Release_Price","Texture_Rate")]
+newdf$Boost_Clock<-gsub("MHz","",allgpus$Boost_Clock) 
+newdf$Core_Speed<-gsub("MHz","",allgpus$Core_Speed)
+newdf$Memory<-gsub("MB","",allgpus$Memory) 
+newdf$Memory_Bandwidth<-gsub("GB/sec","",allgpus$Memory_Bandwidth)
+newdf$Memory_Bus<-gsub("Bit","",allgpus$Memory_Bus) 
+newdf$Memory_Speed<-gsub("MHz","",allgpus$Memory_Speed) 
+newdf$Texture_Rate<-gsub("GTexel/s","",allgpus$Texture_Rate)
+newdf$Release_Price<-gsub("\\$","",allgpus$Release_Price)
+
+#convert to integer
+newdf$Boost_Clock<-as.numeric(newdf$Boost_Clock)
+newdf$Core_Speed<-as.numeric(newdf$Core_Speed)
+newdf$Memory<-as.numeric(newdf$Memory)
+newdf$Memory_Bandwidth<-as.numeric(newdf$Memory_Bandwidth)
+newdf$Memory_Bus<-as.numeric(newdf$Memory_Bus)
+newdf$Memory_Speed<-as.numeric(newdf$Memory_Speed)
+newdf$Release_Price<-as.numeric(newdf$Release_Price)
+newdf$Texture_Rate<-as.numeric(newdf$Texture_Rate)
+
+newdf$Core_Speed[is.na(newdf$Core_Speed)] <- mean(newdf$Core_Speed,na.rm=TRUE)
+
+#data plotting
+ggplot(data = noNA,
+       mapping = aes(           
+         x = Core_Speed,
+         y = Release_Price,
+         color = 2)
+       ) + 
+  geom_point(                  
+    size = 1,
+    alpha = 0.5)   
+##############
+ggplot(data = noNA,
+       mapping = aes(           
+         x = Memory,
+         y = Release_Price,
+         color = 2)
+       ) + 
+  geom_point(                  
+    size = 1,
+    alpha = 0.5)   
+#########
+ggplot(data = noNA,
+       mapping = aes(           
+         x = Memory_Bandwidth ,
+         y = Release_Price,
+         color = 2)
+       ) + 
+  geom_point(                  
+    size = 1,
+    alpha = 0.5)         
+#########
+ggplot(data = noNA,
+       mapping = aes(           
+         x = Memory_Bus ,
+         y = Release_Price,
+         color = 2)
+       ) + 
+  geom_point(                  
+    size = 1,
+    alpha = 0.5)     
+#########
+ggplot(data = noNA,
+       mapping = aes(           
+         x = Memory_Speed ,
+         y = Release_Price,
+         color = 2)
+       ) + 
+  geom_point(                  
+    size = 1,
+    alpha = 0.5)
+#########
+ggplot(data = noNA,
+       mapping = aes(           
+         x = Texture_Rate ,
+         y = Release_Price,
+         color = 2)
+       ) + 
+  geom_point(                  
+    size = 1,
+    alpha = 0.5) 
+# Inferential Statistic
+## Data Splitting
+set.seed(123)
+sample <- sample.int(n = nrow(filtered), size = floor(.70*nrow(filtered)), replace = F)
+train_data = filtered[sample,]
+test_data = filtered[-sample,]
+#Original model
+model_1 <- lm(Release_Price ~ Core_Speed + Memory + Memory_Bandwidth + Memory_Bus + Memory_Speed + Texture_Rate, data = train_data)
+summary(model_1) 
+### MODEL FITTING
+model_fix1<-lm(Release_Price~Core_Speed+Memory+Memory_Bandwidth+Memory_Bus+Memory_Speed,data=train_data)   
+summary(model_fix1)
+model_fix2<-lm(Release_Price~Memory+Memory_Bandwidth+Memory_Bus+Memory_Speed+Texture_Rate,data=train_data)  
+summary(model_fix2)
+model_fix3<-lm(Release_Price~Core_Speed+Memory+Memory_Bus+Memory_Speed+Texture_Rate,data=train_data)  
+summary(model_fix3)
+model_fix4<-lm(Release_Price~Core_Speed+Memory+Memory_Bandwidth+Memory_Speed+Texture_Rate,data=train_data)   
+summary(model_fix4)       
+
+##residuals vs fitted 
+plot(model_fix2$fitted.values, model_fix2$residuals, xlab = "Fitted Values", ylab="Residuals vs Fitted Plot")
+abline(h=0,lty=2)
+##normalqq
+set.seed(11)
+train_data <-rnorm(100)
+qqnorm(train_data) 
+qqline(train_data) 
+# Create a scale-location plot
+plot(train_data, which = 3)
+# Residuals and Leverage plot
+plot(train_data, which = 5)
+#predict release price
+train_data$ReleasePrice_predict<-predict(model_fix2, newdata = train_data)
+plot(train_data$Release_Price,train_data$ReleasePrice_predict,col="blue",xlab="ReleasePrice",ylab="Predicted ReleasePrice",main="ReleasePrice and Predicted ReleasePrice")
+compair<-lm(ReleasePrice_predict~Release_Price,data=train_data)
+abline(compair,col="red")
+#rmse for 30% model-applied data 
+view(test_data)
+predictions <- predict(model_fix2, newdata = test_data)
+actual <- test_data$Release_Price 
+rmse <- sqrt(mean((predictions - actual)^2))
+rmse
+#rsme for N/A data
+view(empty)
+predictions_2 <- predict(model_fix2, newdata_2 = empty)
+actual_2 <- test_data$Release_Price 
+rmse_2 <- sqrt(mean((predictions_2 - actual_2)^2))
+data_range_2<-range(noNA$Release_Price)
+rmse_2
+
+#view for prediction of NA data
+df3 = data.frame(empty,predictions)
+df4<-subset(df3,select=-Release_Price)
+df4<-subset(df4,select=-Boost_Clock) 
+#view of 30% dataset
+view(predictions_2)
+view(test_data)
+predictions_2<-predict(model_fix2,test_data)
+df5=data.frame(test_data,predictions_2)
+view(df5)                                      
