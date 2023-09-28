@@ -1,0 +1,14 @@
+I=imread('Man.jpg'); load ảnh có tên là Man I=rgb2gray(I); chuyển ảnh sang hệ xám [m,n]=size(I); lấy kích thước ma trận của ảnh figure(1);
+imshow(I); hiện ảnh gốc
+I=im2double(I); chuyển các giá trị ma trận ảnh sang dạng dấu phẩy động
+size(I)
+[U,S,V]=svd(I); phân rã SVD cho ma trận ảnh sigma=diag(S); lấy đường chéo của ma trận S
+I1=sigma(1)*U(:,1)*V(:,1)'; tính giá trị ma trận tái tổ hợp I1 đầu tiên
+k=input(‘k=’); yêu cầu nhập k là kích thước ma trận tái tổ hợp
+for i=1:k
+I1=I1+sigma(i)*U(:,i)*V(:,i)'; tính ma trận tái tổ hợp I1 kích thước k
+end figure(2);
+imshow(I1); hiện ảnh sau phân rã SVD, đã giảm nhiễu imagesc(I1);colormap(gray); chuyển ảnh I1 hiển thị sang dạng xám
+figure(3);
+semilogy(S/S(1),'.-'); vẽ đồ thị giá trị thành phần chính ylabel('Singular values'); hiện nhãn trục y
+grid on; hiện đường lưới
