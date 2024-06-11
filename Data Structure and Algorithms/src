@@ -1,0 +1,242 @@
+#include "main.hpp"
+#include "Dataset.hpp"
+/* TODO: Please design your data structure carefully so that you can work with the given dataset
+ *       in this assignment. The below structures are just some suggestions.
+ */
+struct kDTreeNode
+{
+    vector<int> data;
+    int label;
+    kDTreeNode *left;
+    kDTreeNode *right;
+    kDTreeNode(vector<int> data, kDTreeNode *left = nullptr, kDTreeNode *right = nullptr)
+    {
+        this->data = data;
+        this->label = 0;
+        this->left = left;
+        this->right = right;
+    }
+    kDTreeNode(vector<int> data, int label, kDTreeNode *left = nullptr, kDTreeNode *right = nullptr)
+    {
+        this->data = data;
+        this->label = label;
+        this->left = nullptr;
+        this->right = nullptr;
+    }
+
+    friend ostream &operator<<(ostream &os, const kDTreeNode &node)
+    {
+        os << "(";
+        for (int i = 0; i < node.data.size(); i++)
+        {
+            os << node.data[i];
+            if (i != node.data.size() - 1)
+            {
+                os << ", ";
+            }
+        }
+        os << ")";
+        return os;
+    }
+};
+
+class kDTree
+{
+private:
+    int k;
+    kDTreeNode *root;
+    int count;
+private:
+    void clear(kDTreeNode *temp);
+    kDTreeNode* copy(const kDTreeNode* temp);
+    int recHeight(kDTreeNode* temp) const;
+    int recLeaf(kDTreeNode* temp) const;
+    void recInorderTraversal(kDTreeNode* temp) const;
+    void recPreorderTraversal(kDTreeNode* temp) const;
+    void recPostorderTraversal(kDTreeNode* temp) const;
+    kDTreeNode* recInsert(kDTreeNode* temp, const vector<int> &point, int level);
+    kDTreeNode* findkDTreeNodeMin(kDTreeNode* temp, int alpha, int level);
+    kDTreeNode* recRemove(kDTreeNode* temp, const vector<int> &point, int level);
+    bool recSearch(kDTreeNode* temp,const vector<int> &point, int level);
+    kDTreeNode* recBuildTree(const vector<vector<int>> &pointList, int level);
+    void recNearestNeighbour(kDTreeNode* temp,const vector<int> &target, kDTreeNode*& best, int level);
+    void recKNearestNeighbour(kDTreeNode* temp,const vector<int> &target,int k, vector<kDTreeNode*> &bestList, int level);
+    kDTreeNode* recBuildTree(const vector<vector<int>> &pointList,const vector<int> &label, int level)
+    {
+        if (pointList.size() == 0)
+            return nullptr;
+        int alpha = level % k;
+        int medin = (pointList.size() - 1) / 2;
+        vector<vector<int>> left;
+        vector<vector<int>> right;
+        vector<int> leftLabel;
+        vector<int> rightLabel;
+        int dataLabel;
+        vector<int> data;
+
+        vector<vector<int>> temp = pointList;
+        vector<int> tempLabel = label;
+
+        for (int i = 0; i < temp.size(); i++)
+        {
+            for (int j = 0; j < temp.size() - 1; j++)
+            {
+                if (temp[j][alpha] > temp[j + 1][alpha])
+                {
+                    swap(temp[j + 1], temp[j]);
+                    swap(tempLabel[j+1],  tempLabel[j]);
+                }
+            }
+        }
+
+        while (medin != 0 && temp[medin][alpha] == temp[medin - 1][alpha])
+        {
+            medin--;
+        }
+
+        data = temp[medin];
+        dataLabel = tempLabel[medin];
+        for (int i = 0; i < medin; i++)
+        {
+            left.push_back(temp[i]);
+            leftLabel.push_back( tempLabel[i]);
+        }
+        for (int i = medin + 1; i < pointList.size(); i++)
+        {
+            right.push_back(temp[i]);
+            rightLabel.push_back( tempLabel[i]);
+        }
+
+
+        kDTreeNode *root = new kDTreeNode(data, dataLabel);
+        root->left = recBuildTree(left, leftLabel, level + 1);
+        root->right = recBuildTree(right, rightLabel, level + 1);
+        return root;        
+    }
+public:
+    kDTree(int k = 2);
+    ~kDTree();
+    const kDTree &operator=(const kDTree &other);
+    kDTree(const kDTree &other);
+    int nodeCount() const;
+    int height() const;
+    int leafCount() const;
+    void inorderTraversal() const;
+    void preorderTraversal() const;
+    void postorderTraversal() const;
+    void insert(const vector<int> &point);
+    void remove(const vector<int> &point);
+    bool search(const vector<int> &point);
+    void buildTree(const vector<vector<int>> &pointList);
+    void nearestNeighbour(const vector<int> &target, kDTreeNode*& best);
+    void kNearestNeighbour(const vector<int> &target, int k, vector<kDTreeNode*> &bestList);
+
+    void buildTree(const vector<vector<int>> &pointList,const vector<int> &label)
+    {
+        this->count = pointList.size();
+        this->root = this->recBuildTree(pointList, label, 0);
+    }
+    friend class kNN;
+};
+
+class kNN
+{
+private:
+    int k;
+    Dataset *X_train;
+    Dataset *y_train;
+    kDTree  kdtree;
+public:
+    kNN(int k = 5):k(k){};
+    void fit(Dataset &X_train, Dataset &y_train)
+    {
+        this->X_train = &X_train;
+        this->y_train = &y_train;
+        if(X_train.data.size())
+        {
+            int dimension = X_train.data.front().size();
+            kdtree.k = dimension;
+            vector<vector<int>> pointList;
+            vector<int> label;
+            
+            for (const auto& subList : X_train.data) {
+                // Chuyển đổi từ list<int> sang vector<int>
+                vector<int> subVec(subList.begin(), subList.end());
+                // Thêm vào vector của vector
+                pointList.push_back(subVec);
+            }
+            
+            for (const auto& subList : y_train.data) {
+                label.push_back(subList.front());
+            }            
+            kdtree.buildTree(pointList, label);
+            //label        
+        }
+    }
+    Dataset predict(Dataset &X_test)
+    {
+        Dataset result; 
+        result.columnName.push_back("label");
+        for (const auto& subList : X_test.data) {
+            // Chuyển đổi từ list<int> sang vector<int>
+            vector<int> target(subList.begin(), subList.end());
+
+            vector<kDTreeNode*> bestList;
+            kdtree.kNearestNeighbour(target, this->k, bestList);
+
+            vector<int> data(10, 0);
+            for(auto i : bestList)
+            {
+                data[i->label] ++;
+            }
+
+            int index = 0;
+            for(int i = 0; i < 10; i++)
+            {
+                if(data[index] < data[i]) index = i;
+            }
+
+            list<int> temp;
+            temp.push_back(index);
+            result.data.push_back(temp);
+        }
+        
+        return result;
+    }
+    double score(const Dataset &y_test, const Dataset &y_pred)
+    {
+        int count = 0;
+        
+        list<list<int>> list1 = y_test.data;
+        list<list<int>> list2 = y_pred.data;
+
+        auto it1 = list1.begin();
+        auto it2 = list2.begin();
+        // Duyệt qua cả hai list đồng thời
+        while (it1 != list1.end() && it2 != list2.end()) {
+            // Kiểm tra nếu cả hai hàng chỉ có một phần tử và phần tử đó giống nhau
+            if (*(it1->begin()) == *(it2->begin())) {
+                count++;
+            }
+            // Tiếp tục với hàng tiếp theo
+            ++it1;
+            ++it2;
+        }
+
+        return count * 1.0 / y_test.data.size();
+    }
+
+
+    void print_Y(const Dataset& y)
+    {
+        OUTPUT << y.columnName[0] << ": ";
+        for (auto it : y.data)
+        {
+            OUTPUT << it.front() << " ";
+        }
+        OUTPUT << endl;
+
+    }
+};
+
+// Please add more or modify as needed

@@ -1,0 +1,72 @@
+{
+	"folders": [
+		{
+			"path": "../BTLDSA/init"
+		},
+		{
+			"path": "../BTLDSA/SuperTest_1.0.3"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"format": "cpp",
+			"vector": "cpp",
+			"xstring": "cpp",
+			"istream": "cpp",
+			"tuple": "cpp",
+			"xutility": "cpp",
+			"atomic": "cpp",
+			"bit": "cpp",
+			"cctype": "cpp",
+			"charconv": "cpp",
+			"clocale": "cpp",
+			"cmath": "cpp",
+			"compare": "cpp",
+			"concepts": "cpp",
+			"cstddef": "cpp",
+			"cstdint": "cpp",
+			"cstdio": "cpp",
+			"cstdlib": "cpp",
+			"cstring": "cpp",
+			"ctime": "cpp",
+			"cwchar": "cpp",
+			"exception": "cpp",
+			"fstream": "cpp",
+			"initializer_list": "cpp",
+			"iomanip": "cpp",
+			"ios": "cpp",
+			"iosfwd": "cpp",
+			"iostream": "cpp",
+			"iterator": "cpp",
+			"limits": "cpp",
+			"locale": "cpp",
+			"memory": "cpp",
+			"new": "cpp",
+			"ostream": "cpp",
+			"sstream": "cpp",
+			"stdexcept": "cpp",
+			"streambuf": "cpp",
+			"string": "cpp",
+			"system_error": "cpp",
+			"type_traits": "cpp",
+			"typeinfo": "cpp",
+			"utility": "cpp",
+			"xfacet": "cpp",
+			"xiosbase": "cpp",
+			"xlocale": "cpp",
+			"xlocbuf": "cpp",
+			"xlocinfo": "cpp",
+			"xlocmes": "cpp",
+			"xlocmon": "cpp",
+			"xlocnum": "cpp",
+			"xloctime": "cpp",
+			"xmemory": "cpp",
+			"xtr1common": "cpp",
+			"deque": "cpp",
+			"list": "cpp",
+			"string_view": "cpp",
+			"array": "cpp",
+			"*.tcc": "cpp"
+		}
+	}
+}
